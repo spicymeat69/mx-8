@@ -70,9 +70,7 @@ fn vigenere_shift(mut content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u8> {
 
 fn bit_spin(mut content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u8> {
     for (count, byte) in content_bytes.iter_mut().enumerate() {
-        // calculate spin amount here
         let spin = (key_bytes[count % key_bytes.len()] as usize ^ count * 31) % 8;
-        // rotate byte here
         *byte = byte.rotate_left(spin as u32);
     }
 
@@ -108,7 +106,6 @@ fn rail_fence(content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u8> {
 }
 
 fn aes_encrypt(data: Vec<u8>, key: &str) -> Vec<u8> {
-    // stretch key to 32 bytes
     let mut hasher = Sha256::new();
     hasher.update(key.as_bytes());
     let key_bytes = hasher.finalize();
@@ -116,15 +113,12 @@ fn aes_encrypt(data: Vec<u8>, key: &str) -> Vec<u8> {
     let key = Key::<Aes256Gcm>::from_slice(&key_bytes);
     let cipher = Aes256Gcm::new(key);
 
-    // fixed nonce for simplicity (12 bytes)
     let nonce = Nonce::from_slice(b"unique nonce");
 
     cipher.encrypt(nonce, data.as_ref()).unwrap()
 }
 
 
-
-// DECRYPTION ////
 
 
 fn vigenere_shift_decrypt(mut content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u8> {
@@ -136,9 +130,7 @@ fn vigenere_shift_decrypt(mut content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u
 
 fn bit_spin_decrypt(mut content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u8> {
     for (count, byte) in content_bytes.iter_mut().enumerate() {
-        // calculate spin amount here
         let spin = (key_bytes[count % key_bytes.len()] as usize ^ count * 31) % 8;
-        // rotate byte here
         *byte = byte.rotate_right(spin as u32);
     }
 
@@ -148,7 +140,6 @@ fn bit_spin_decrypt(mut content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u8> {
 fn rail_fence_decrypt(content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u8> {
     let rails = (key_bytes.iter().map(|b| *b as usize).sum::<usize>() % 5) + 2;
 
-    // step 1 - build same pattern
     let mut pattern = vec![0usize; content_bytes.len()];
     let mut rail = 0i32;
     let mut direction = 1i32;
@@ -162,26 +153,25 @@ fn rail_fence_decrypt(content_bytes: Vec<u8>, key_bytes: &[u8]) -> Vec<u8> {
         rail += direction;
     }
 
-    // step 2 - count bytes per rail
     let mut rail_lengths = vec![0usize; rails];
     for &r in &pattern {
         rail_lengths[r] += 1;
     }
 
     let mut rails_data: Vec<Vec<u8>> = Vec::new();
-let mut pos = 0;
-for &len in &rail_lengths {
-    rails_data.push(content_bytes[pos..pos + len].to_vec());
-    pos += len;
-}
+    let mut pos = 0;
+    for &len in &rail_lengths {
+       rails_data.push(content_bytes[pos..pos + len].to_vec());
+       pos += len;
+    }
 
-let mut rail_indices = vec![0usize; rails];
-let mut output = vec![0u8; content_bytes.len()];
-for (i, &r) in pattern.iter().enumerate() {
-    output[i] = rails_data[r][rail_indices[r]];
-    rail_indices[r] += 1;
-}
-output
+    let mut rail_indices = vec![0usize; rails];
+    let mut output = vec![0u8; content_bytes.len()];
+    for (i, &r) in pattern.iter().enumerate() {
+       output[i] = rails_data[r][rail_indices[r]];
+       rail_indices[r] += 1;
+    }
+    output
 }
 
 fn aes_decrypt(data: Vec<u8>, key: &str) -> Vec<u8> {
@@ -195,4 +185,5 @@ fn aes_decrypt(data: Vec<u8>, key: &str) -> Vec<u8> {
     let nonce = Nonce::from_slice(b"unique nonce");
 
     cipher.decrypt(nonce, data.as_ref()).unwrap()
+
 }
