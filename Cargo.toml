@@ -1,0 +1,11 @@
+[package]
+
+name = "mx-8"
+version = "0.0.1"
+authors = [ "moxx" ]
+
+[dependencies]
+aes-gcm = "0.10.3"
+sha2 = "0.10.9"
+wasm-bindgen = "0.2.114"
+
