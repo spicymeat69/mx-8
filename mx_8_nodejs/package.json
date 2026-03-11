@@ -1,0 +1,14 @@
+{
+  "name": "mx-8",
+  "collaborators": [
+    "moxx"
+  ],
+  "version": "0.0.1",
+  "files": [
+    "mx_8_bg.wasm",
+    "mx_8.js",
+    "mx_8.d.ts"
+  ],
+  "main": "mx_8.js",
+  "types": "mx_8.d.ts"
+}
